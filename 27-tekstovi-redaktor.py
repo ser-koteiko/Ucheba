@@ -3,14 +3,54 @@
 
 class MyValueErrorException(BaseException):
 	pass
-
+	
+class Text:
+	def __init__(self):
+		self.m=[]
+	def clear(self):
+		self.m=[]
+	def add_line(self,l):
+		self.m.append(l)
+	def insert_line(self,l,d):
+		l1=m[:d-1]
+		l2=m[d-1:]
+		l1.append(l)
+		m=l+l2
+	def delete_line(self,d):
+		m=m[:d-1]+m[d:]
+	def delete_lines(self,d,d1):
+		#m=m[:d-1]+m[d1:]
+		d0=d1-d
+		for i in range (0,d0):
+			self.delete_line(d)
+	def print_line(self,d):
+		l=self.m[d-1]
+		print d-1, ":", l
+	def print_lines(self,d,d1):
+		l=self.m[d-1:d1]
+		b=d-1
+		for i in l:
+			b+=1
+			print b, ":", i
+	def print_all_lines(self):
+		#b=0
+		#for i in self.m:
+			#b+=1
+			#print b, ":", i
+		self.print_lines(self,1,len(self.m))
+	def load(self,param1):
+		for i in param1:
+			self.m.append(i.strip())
+	def save(self,param1):
+	`	param1.write("\n".join(self.m))
+		
 import os
 tekst2 = open("tekst2.txt", "r")
 l = tekst2.readlines()
 for li in l:
 	print li.decode('utf8'),
 print""
-m=[]
+t = Text()
 f=[]
 komanda=[]
 param=[]
@@ -21,7 +61,7 @@ while True:
 	param=f[1:]
 	try:
 		if komanda=="enter":
-			m=[]
+			t.clear()
 			h=raw_input("Vvedite tekst:")
 			#tekst3 = open("tekst3.txt", "w")
 			while h != "%end":
@@ -29,7 +69,7 @@ while True:
 				#tekst3.write("\n")
 				#tekst3.flush()
 				#os.fsync(tekst3)
-				m.append(h)
+				t.add_line(h)
 				h=raw_input(">")
 		elif komanda=="insert":
 			if param:
@@ -37,16 +77,10 @@ while True:
 				if not d in range(0,len(m)+1):
 					raise MyValueErrorException
 			h=raw_input("Vvedite tekst:")
-			l1=[]
-			l=[]
 			if param:
-				l=m[:d-1]
-				l2=m[d-1:]
-				l.append(h)
-				l=l+l2
-				m=l
+				t.insert_line(h,d)
 			else:
-				m.append(h)
+				t.add_line(h)
 		elif komanda=="delete":
 			if param:
 				d = int(param[0])
@@ -59,58 +93,52 @@ while True:
 				if len(param)>=2:
 					d = int(param[0])
 					d1 = int(param[1])
-					m=m[:d-1]+m[d1:]
-					print m
+					t.delete_lines(d,d1)
 				else:
 					d = int(param[0])
-					m=m[:d-1]
+					t.delete_line(d)
 			else:
-				m=[]
+				t.clear()
 		elif komanda=="print":
 			if param:
-				if len(param)>=2:
-					d = int(param[0])
-					d1 = int(param[1])
-					l=m[d-1:d1]
-					b=0
-					for i in l:
-						b+=1
-						print b, ":", i
-				else:
-					d = int(param[0])
-					l=m[d-1:]
-					b=0
-					for i in l:
-						b+=1
-						print b, ":", i
-			else:
-				b=0
-				for i in m:
-					b+=1
-					print b, ":", i
-		elif komanda=="replace":
-			h=raw_input("Vvedite tekst:")
-			l1=[]
-			l=[]
+				d = int(param[0])
+				if not d in range(0,len(m)+1):
+					raise MyValueErrorException
+				d = int(param[1])
+				if not d in range(0,len(m)+1):
+					raise MyValueErrorException
 			if param:
 				if len(param)>=2:
 					d = int(param[0])
 					d1 = int(param[1])
-					l=m[:d-1]
-					l2=m[d1:]
-					l.append(h)
-					l=l+l2
-					m=l
+					t.print_lines(d,d1)
 				else:
 					d = int(param[0])
-					l=m[:d-1]
-					l2=m[d:]
-					l.append(h)
-					l=l+l2
-					m=l
+					t.print_line(d)
 			else:
-				m=[]
-				m.append(h)
+				t.print_all_lines()
+		elif komanda=="replace":
+			h=raw_input("Vvedite tekst:")
+			if param:
+				d = int(param[0])
+				if not d in range(0,len(m)+1):
+					raise MyValueErrorException
+				d = int(param[1])
+				if not d in range(0,len(m)+1):
+					raise MyValueErrorException
+			if param:
+				if len(param)>=2:
+					d = int(param[0])
+					d1 = int(param[1])
+					t.delete_lines(d,d1)
+					t.insert_line(h,d)
+				else:
+					d = int(param[0])
+					t.delete_line(d)
+					t.insert_line(h,d)
+			else:
+				t.clear()
+				t.add_line(h)
 		elif komanda=="find":
 			if param:
 				b=0
@@ -126,27 +154,17 @@ while True:
 		elif komanda=="save":
 			if param:
 				param1=open(param[0],"w")
-				param1.write("\n".join(m))
-				#for i in m:
-					#param1.write(i)
-					#param1.write("\n")
+				t.save(param1)
 				param1.close()
 			else:
-				temp = open("temp.txt", "w")
-				m1="\n".join(m)
-				temp.write(m1)
-				#for i in m:
-					#temp.write(i)
-					#temp.write("\n")
-				temp.close()
+				param1 = open("temp.txt", "w")
+				t.save(param1)
+				param1.close()
 			continue
 		elif komanda=="load":
-			m=[]
 			param1=open(param[0],"r")
-			for i in param1:
-				m.append(i.strip())
-			for i in m:
-				print i
+			t.load(param1)
+			t.print_all_lines()
 			continue
 		else:
 			print "neverno vvedena komanda"
